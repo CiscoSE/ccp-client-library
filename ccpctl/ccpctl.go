@@ -15,9 +15,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rob-moss/ccp-clientlibrary-go/ccp"
+	// "github.com/rob-moss/ccp-clientlibrary-go/ccp"
+	"github.com/CiscoSE/ccp-client-library/ccp"
 	// fork this github repo in to your ~/git/src dir
-	// go get -u github.com/rob-moss/ccp-clientlibrary-go
+	// go get -u github.com/CiscoSE/ccp-client-library
 )
 
 // user.Current().HomeDir
@@ -123,14 +124,6 @@ func menuHelp() {
 	fmt.Println(`
 	ccpctl help
 	-----------
-	defaults
-		setdefault 				// asks all the defaults
-		setdefault cpName
-		setdefault cpCluster
-		setdefault cpSSHUser 	// Username ie ccpadmin
-		setdefault ccpSSHKey 	// SSH key
-		setdefault cpUser 		// CP username ie Admin
-		setdefault cpPass 		// CP password ie C1sc0123
 
 	add Control Plane info
 		setcp <asks interactive>
