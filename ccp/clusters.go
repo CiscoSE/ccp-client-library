@@ -21,7 +21,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -29,49 +28,6 @@ import (
 
 	validator "gopkg.in/validator.v2"
 )
-
-/* ToDo
-- Create/update functions to:
--- Get kubernetes version for installing clusters (from image?)
--- AddClusterBasic - update func
--- GetClusterAddons - list installed addons
-
-//
-- Control Plane install:
--- Install v2 cluster from CCP control plane
-- Provider(s)
--- Set up new vSphere provider
-- Stretch goals for v3:
-- EKS/AKS/GCP
--- Create provider(s)
--- Create clusters
--- Delete clusters
--- Scale clusters
-
-Done:
-- GetSubnets: Done
-- GetSubnet(by name): Done
-- GetProviders: Done
-- GetProvider(by name): Done
-
-- Create JSON config: done
-- Make connection to CCP CP via Proxy (optional): done
-- Set defaults: image, sshkey, sshuser, provider, network: done
-- Log in to CCP using X-Auth-Token: done
--- Fetch provider by name -> uuid: done
--- Fetch subnet by name -> uuid: done
--- Create Cluster (Calico, vSphere): done
--- Scale Cluster (Worker nodes): done
--- Delete Cluster: done
-- Create functions to:
--- Install Add-Ons: done
--- Istio: done
--- Harbor: done
--- HX-CSI: done
--- Monitoring: done
--- Logging: done
--- kubeflow: done
-*/
 
 // Cluster v3 cluster
 type Cluster struct {
@@ -324,9 +280,6 @@ func (s *Client) GetClusters() ([]Cluster, error) {
 		return nil, err
 	}
 
-	// Print out the Println of bytes
-	// to debug: uncomment below. Prints JSON payload
-	// fmt.Println(string(bytes))
 	Debug(3, "Cluster JSON Payload:\n"+string(bytes))
 
 	// Create an Array of Clusters
@@ -655,43 +608,57 @@ func (s *Client) AddClusterSynchronous(cluster *Cluster) (*Cluster, error) {
 	// https://stackoverflow.com/questions/44320960/omitempty-doesnt-omit-interface-nil-values-in-json
 	// *cluster.MasterNodePool.Nodes returns &[] and since this is not nil, omitempty, won't omit it when we marshal. Instead it includes nodes: null
 	// which CCP doesn't like. Therefore we need to check if it's empty and then set it to nil.
-	if len(*cluster.MasterNodePool.Nodes) == 0 {
-		cluster.MasterNodePool.Nodes = nil
-	}
 
+	if cluster.MasterNodePool.Nodes != nil { // this check is for the CCP clientlibrary / ccpctl only
+		if len(*cluster.MasterNodePool.Nodes) == 0 { // this check is for the TF library creating a zero sized array
+			cluster.MasterNodePool.Nodes = nil
+		}
+	}
 	// Same as above but there can be multiple pools of worker nodes, therefore we need to iterate through, check if the nodes are empty,
 	// and if so set them to nil
 	var attr WorkerNodePool
 
-	for i := 0; i < len(*cluster.WorkerNodePool); i++ {
-		attr = (*cluster.WorkerNodePool)[i]
+	if cluster.WorkerNodePool != nil { // check if this exists, if it does then process it
+		for i := 0; i < len(*cluster.WorkerNodePool); i++ {
+			attr = (*cluster.WorkerNodePool)[i]
 
-		if len(*attr.Nodes) == 0 {
-			attr.Nodes = nil
+			if attr.Nodes != nil {
+				if len(*attr.Nodes) == 0 {
+					attr.Nodes = nil
+				}
+				(*cluster.WorkerNodePool)[i] = attr
+			}
 		}
-
-		(*cluster.WorkerNodePool)[i] = attr
-
 	}
 
-	if len(*cluster.NTPPools) == 0 {
-		cluster.NTPPools = nil
+	if cluster.NTPPools != nil { // check if this exists, if it does then process it
+		if len(*cluster.NTPPools) == 0 {
+			cluster.NTPPools = nil
+		}
 	}
 
-	if len(*cluster.NTPServers) == 0 {
-		cluster.NTPServers = nil
+	if cluster.NTPServers != nil {
+		if len(*cluster.NTPServers) == 0 {
+			cluster.NTPServers = nil
+		}
 	}
 
-	if len(*cluster.DockerNoProxy) == 0 {
-		cluster.DockerNoProxy = nil
+	if cluster.DockerNoProxy != nil {
+		if len(*cluster.DockerNoProxy) == 0 {
+			cluster.DockerNoProxy = nil
+		}
 	}
 
-	if len(*cluster.RegistriesRootCA) == 0 {
-		cluster.RegistriesRootCA = nil
+	if cluster.RegistriesRootCA != nil {
+		if len(*cluster.RegistriesRootCA) == 0 {
+			cluster.RegistriesRootCA = nil
+		}
 	}
 
-	if len(*cluster.RegistriesInsecure) == 0 {
-		cluster.RegistriesInsecure = nil
+	if cluster.RegistriesInsecure != nil {
+		if len(*cluster.RegistriesInsecure) == 0 {
+			cluster.RegistriesInsecure = nil
+		}
 	}
 
 	// Need this because even though we don't have the networks setting configured for contiv-aci, if we leave it
@@ -699,16 +666,15 @@ func (s *Client) AddClusterSynchronous(cluster *Cluster) (*Cluster, error) {
 	// see here for details https://apoorvam.github.io/blog/2017/golang-json-marshal-slice-as-empty-array-not-null
 	// Also, it seems CCP complains when load_balancer_ip_num is missing even though it's not used for the aci cni
 
-	if *cluster.NetworkPlugin.Name == "contiv-aci" {
-		*cluster.Infra.Networks = make([]string, 0)
-		*cluster.LoadBalancerIPNum = 1
+	if cluster.NetworkPlugin.Name != nil {
+		if *cluster.NetworkPlugin.Name == "contiv-aci" {
+			*cluster.Infra.Networks = make([]string, 0)
+			*cluster.LoadBalancerIPNum = 1
+		}
 	}
-
 	url := s.BaseURL + "/v3/clusters/"
 
 	j, err := json.Marshal(&cluster)
-
-	log.Printf("[DEBUGGING] ******** before sending %s", string(j))
 
 	fmt.Println(string(j))
 
@@ -938,10 +904,6 @@ func (s *Client) AddClusterBasic(cluster *Cluster) (*Cluster, error) {
 
 	cluster.MasterNodePool = &masterNodePool
 
-	// Need to reset the cluster level template to nil otherwise we receive the following error
-	// "Cluster level template cannot be provided when master_node_pool and worker_node_pool are provided"
-	//	cluster.Template = nil
-
 	url := s.BaseURL + "/v3/clusters"
 
 	j, err := json.Marshal(cluster)
@@ -972,19 +934,6 @@ func (s *Client) AddClusterBasic(cluster *Cluster) (*Cluster, error) {
 
 	return cluster, nil
 }
-
-// // AddOns for v3 clusters
-// type AddOns struct {
-// 	DisplayName   *string             `json:"displayName" validate:"nonzero"`
-// 	Name          *string             `json:"name" validate:"nonzero"`
-// 	Namespace     *string             `json:"namespace" validate:"nonzero"`
-// 	Description   *string             `json:"description" validate:"nonzero"`
-// 	URL           *string             `json:"url" validate:"nonzero"`
-// 	OverrideFiles *string             `json:"overrideFiles,omitempty"`
-// 	Overrides     *string             `json:"overrides,omitempty"`
-// 	Conflicts     *[]string           `json:"conflicts,omitempty"`
-// 	Dependencies  *AddOnsDependencies `json:"dependencies,omitempty"`
-// }
 
 // InstallAddonIstioOp Installs the Istio Operator
 func (s *Client) InstallAddonIstioOp(clusterUUID string) error {
@@ -1531,28 +1480,6 @@ func (s *Client) GetClusterInstalledAddons(clusterUUID string) (*ClusterInstalle
 
 	return data, nil
 }
-
-// err = json.Unmarshal([]byte(jsonBody), &data)
-// if err != nil {
-// 	fmt.Println("error:", err)
-// } else {
-// 	fmt.Println("Success")
-// }
-// fmt.Printf("Struct: %+v\n", data)
-//
-// fmt.Println("HX Data:")
-// fmt.Println(data.CcpHxcsi)
-//
-// j, err := json.Marshal(data.CcpHxcsi)
-// if err != nil {
-// 	fmt.Println(err)
-// 	return
-// }
-// fmt.Println("Raw JSON:")
-// fmt.Println(string(j))
-
-// -=-=- new way to install add-ons which require some specifics provided by the CCP COntrol Plane
-// -=-=- for example the HX-CSI and Kubeflow Add-Ons both have a Token that needs to be provided from CCP
 
 // InstallAddonHXCSI Installs the Istio Operator
 func (s *Client) InstallAddonHXCSI(clusterUUID string) error {
