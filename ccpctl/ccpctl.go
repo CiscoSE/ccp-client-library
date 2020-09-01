@@ -64,22 +64,6 @@ type Defaults struct {
 
 // todo:
 /*
-- setcp: done
-- setcp clusterdfl: done
-- getcp: done
-- getcluster: done
-- getclusters: done
-- getprovider: done
-- getproviders: done
-- getsubnet: done
-- getsubnets: done
-- addcluster: done
-- scalecluster: done
-- addclusterfromfile:
-- getAddon: done
-- installaddon: done
-- deladdon: done
-- delcluster:
 
 - reformat output with tabwriter
 -- https://blog.el-chavez.me/2019/05/05/golang-tabwriter-aligned-text/
@@ -99,7 +83,7 @@ func readDefaults() (*Defaults, error) {
 
 	jsonBody, err := ioutil.ReadFile(defaultsFile)
 	if err != nil {
-		fmt.Println(err)
+		// fmt.Println(err)
 		// do not bail if file not found
 		// return nil, err
 		return &defaults, nil
@@ -110,8 +94,6 @@ func readDefaults() (*Defaults, error) {
 		fmt.Println("error:", err)
 		return nil, err
 	}
-	// fmt.Println("JSON Unmarshal Success")
-	// fmt.Printf("Struct: %+v\n", defaults)
 	Debug(1, "Read defaults file "+defaultsFile+" successfully.")
 
 	return &defaults, nil
@@ -125,8 +107,6 @@ func writeDefaults(defaults *Defaults) error {
 		fmt.Println("JSON Marshal error:", err)
 		return err
 	}
-	// fmt.Println("JSON MarshalSuccess")
-	// fmt.Printf("Struct: %+v\n", defaults)
 
 	err = ioutil.WriteFile(defaultsFile, jsonBody, 0600)
 	if err != nil {
