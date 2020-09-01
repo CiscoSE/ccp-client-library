@@ -5,7 +5,7 @@ import (
 
 	// fork this github repo in to your ~/git/src dir
 	// go get github.com/rob-moss/ccp-clientlibrary-go
-	"github.com/rob-moss/ccp-clientlibrary-go/ccp"
+	"github.com/CiscoSE/ccp-client-library/ccp"
 )
 
 var cpUser = "admin"    // user for CCP Control Plane
@@ -311,7 +311,7 @@ func main() {
 	// 	return
 	// }
 
-	err = client.DeleteAddOnMonitor(*cluster.UUID)
+	err = client.DeleteAddonMonitor(*cluster.UUID)
 	if err != nil {
 		ccp.Debug(1, "Error:")
 		fmt.Println(err)
