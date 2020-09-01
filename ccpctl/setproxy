@@ -1,3 +1,0 @@
-http_proxy='http://galaxy:galaxy@192.133.157.169:8080'
-https_proxy='http://galaxy:galaxy@192.133.157.169:8080'
-export http_proxy https_proxy
