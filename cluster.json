@@ -1,0 +1,55 @@
+{
+    "network_plugin_profile": {
+        "name": "calico",
+        "details": {
+            "pod_cidr": "192.168.0.0/16"
+        }
+    },
+    "vsphere_infra": {
+        "datacenter": "GFFA-DC",
+        "datastore": "GFFA-HX1-CCPInstallTest01",
+        "networks": [
+            "DV_VLAN1060"
+        ],
+        "cluster": "GFFA-HX1-Cluster",
+        "resource_pool": ""
+    },
+    "load_balancer_num": 2,
+    "subnet_id": "cbbac72f-cb7f-4525-a734-b098afe57b6c",
+    "aws_iam_enabled": false,
+    "node_groups": [
+        {
+            "name": "node-group",
+            "size": 1,
+            "vcpus": 8,
+            "memory_mb": 32768,
+            "gpus": [],
+            "template": "hx1-ccp-tenant-image-1.16.3-ubuntu18-6.1.1-pre",
+            "kubernetes_version": "1.16.3",
+            "ssh_user": "ccpadmin",
+            "ssh_key": "ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAFXQk0bZlFiFV6FD5DT0HdVJ2TsL9wlciD3UkcFI+/kpIj2AfOqqoQjt0BYZKzNJ6z4a25nkIueQJFog04S0/+PkQGX/Hc2DVccatAOWMRCedwukdgfoURLHyEdgl9EeCmiyqnUe6XVxiqcX9dkqXuI1KsP/oRir8ZAui3nXvdyUm8TGA== ccpadmin@galaxy.cisco.com"
+        }
+    ],
+    "master_group": {
+        "name": "master-group",
+        "size": 1,
+        "vcpus": 2,
+        "memory_mb": 16384,
+        "gpus": [],
+        "template": "hx1-ccp-tenant-image-1.16.3-ubuntu18-6.1.1-pre",
+        "kubernetes_version": "1.16.3",
+        "ssh_user": "ccpadmin",
+        "ssh_key": "ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAFXQk0bZlFiFV6FD5DT0HdVJ2TsL9wlciD3UkcFI+/kpIj2AfOqqoQjt0BYZKzNJ6z4a25nkIueQJFog04S0/+PkQGX/Hc2DVccatAOWMRCedwukdgfoURLHyEdgl9EeCmiyqnUe6XVxiqcX9dkqXuI1KsP/oRir8ZAui3nXvdyUm8TGA== ccpadmin@galaxy.cisco.com"
+    },
+    "docker_no_proxy": [],
+    "kubernetes_version": "1.16.3",
+    "insecure_registries": [],
+    "root_ca_registries": [],
+    "ntp_servers": [],
+    "ntp_pools": [],
+    "ip_allocation_method": "ccpnet",
+    "provider": "0796a7d0-ab82-4a51-89e3-03f53da365ee",
+    "description": "",
+    "name": "romoss-testcp01-tenant05",
+    "type": "vsphere"
+}
