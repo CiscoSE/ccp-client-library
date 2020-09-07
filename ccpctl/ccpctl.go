@@ -753,26 +753,54 @@ func menuAddCluster(client *ccp.Client, args []string, Settings *Defaults) (*ccp
 	return cluster, nil
 }
 
+func menuPatchClusterFromFile(client *ccp.Client, jsonFile string, jsonout bool) (*ccp.Cluster, error) {
+	// --- AddCluster from JSON File
+	// jsonFile := "./cluster.json"
+	// Convert a JSON file to a Cluster struct
+	newCluster, err := client.ConvertJSONToCluster(jsonFile)
+	if err != nil {
+		fmt.Println("error:", err)
+	} else {
+		fmt.Println("Success")
+	}
+
+	cluster, err := client.GetClusterByName(*newCluster.Name)
+	if err != nil {
+		fmt.Println("Error from GetClusterByName:")
+		fmt.Println(err)
+		return nil, err
+	}
+	fmt.Println("* Cluster to Patch: " + *newCluster.Name)
+	createdCluster, err := client.PatchCluster(newCluster, *cluster.UUID)
+	if err != nil {
+		fmt.Println("Error from AddCluster:")
+		fmt.Println(err)
+		return nil, err
+	}
+	fmt.Println("* Cluster sent to API: " + *createdCluster.Name)
+	return newCluster, nil
+}
+
 func menuAddClusterFromFile(client *ccp.Client, jsonFile string, jsonout bool) (*ccp.Cluster, error) {
 	// --- AddCluster from JSON File
 	// jsonFile := "./cluster.json"
-	// // Convert a JSON file to a Cluster struct
-	// newCluster, err := client.ConvertJSONToCluster(jsonFile)
-	// if err != nil {
-	// 	fmt.Println("error:", err)
-	// } else {
-	// 	fmt.Println("Success")
-	// }
+	// Convert a JSON file to a Cluster struct
+	newCluster, err := client.ConvertJSONToCluster(jsonFile)
+	if err != nil {
+		fmt.Println("error:", err)
+	} else {
+		fmt.Println("Success")
+	}
 
-	// fmt.Println("* New cluster name to create: " + *newCluster.Name)
-	// createdCluster, err := client.AddCluster(newCluster)
-	// if err != nil {
-	// 	fmt.Println("Error from AddCluster:")
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// fmt.Println("* Cluster sent to API: " + *createdCluster.Name)
-	return nil, nil
+	fmt.Println("* New cluster name to create: " + *newCluster.Name)
+	createdCluster, err := client.AddCluster(newCluster)
+	if err != nil {
+		fmt.Println("Error from AddCluster:")
+		fmt.Println(err)
+		return nil, err
+	}
+	fmt.Println("* Cluster sent to API: " + *createdCluster.Name)
+	return newCluster, nil
 }
 
 func menuGetCluster(client *ccp.Client, clusterName string, jsonout bool) error {
