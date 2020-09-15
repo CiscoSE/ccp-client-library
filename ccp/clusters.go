@@ -52,7 +52,7 @@ type Cluster struct {
 	DockerProxyHTTP      *string               `json:"docker_http_proxy,omitempty"`
 	DockerProxyHTTPS     *string               `json:"docker_https_proxy,omitempty"`
 	DockerBIP            *string               `json:"docker_bip,omitempty"`
-	Infra                *Infra                `json:"vsphere_infra"  validate:"nonzero"`
+	Infra                *Infra                `json:"vsphere_infra,omitempty"  validate:"nonzero"`
 	MasterNodePool       *MasterNodePool       `json:"master_group,omitempty"  validate:"nonzero" `
 	WorkerNodePool       *[]WorkerNodePool     `json:"node_groups,omitempty"  validate:"nonzero" `
 	NetworkPlugin        *NetworkPlugin        `json:"network_plugin_profile,omitempty" validate:"nonzero"`
@@ -369,6 +369,7 @@ type ScaleCluster struct {
 
 // ScaleCluster scales an existing cluster
 func (s *Client) ScaleCluster(clusterUUID, workerPoolName string, size int) (*Cluster, error) {
+
 	Debug(1, "Func: ScaleCluster")
 
 	url := s.BaseURL + "/v3/clusters/" + clusterUUID + "/node-pools/" + workerPoolName + "/"
@@ -830,8 +831,8 @@ func (s *Client) AddClusterBasic(cluster *Cluster) (*Cluster, error) {
 	}
 
 	// loop over array of WorkerNodePool
-	for k, v := range *cluster.WorkerNodePool {
-		fmt.Printf("k=%s, v=%+v", k, v)
+	for _, v := range *cluster.WorkerNodePool {
+		//fmt.Printf("k=%s, v=%+v", k, v)
 
 		if nonzero(v.SSHUser) {
 			return nil, errors.New("v.SSHUser is missing")
