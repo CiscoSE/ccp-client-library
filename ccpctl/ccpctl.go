@@ -125,34 +125,41 @@ func menuHelp() {
 	ccpctl help
 	-----------
 
-	Add Control Plane info
-		setcp <asks interactive>
-		setcp cpname=cpname clusterdfl=clustername providerdfl=providername subnetdfl=subnetname datastoredfl=datastore datacenterdfl=dc
-		setcp cpNetworkProviderUUID // looks up name, sets default
-		setcp cpCloudProviderUUID // looks up name, sets default
-		setcp cpNetworkVLAN // vSphere PortGroup
-		setcp cpDatacenter	// vSphere DC
-		setcp cpDatastore // vSphere DS
-		delcp cpName // deletes Control Plane info
-		getcp // lists CPs if no args
-		getcps // lists CPs if no args
-		getcp cpName // lists CP details
+	Control Plane config commands
+		helpcp					// Shows Control Plane help
+		getcp 					// Shows current CP settings
+		setcp cpname=cpname			// Name of Controlplane
+			cpuser=ccpadmin			// Name of CCP userid in Control Plane
+			cppass=ccp1234			// Password for CCP userid
+			cpurl=https://10.1.1.1:443 	// URL of CCP
+			providerdfl=providername 	// name of vSphere provider, will automatically look up and keep UUID
+			subnetdfl=subnetname 		// Subnet name, will automatically look up and keep UUID
+			datastoredfl=datastore 		// default Datastore
+			datacenterdfl=dc 		// default Datacenter
+			vsclusterdfl=vsclustername	// vSphere cluster name default
+			clusterdfl=ccpclustername	// CCP cluster name default
+			sshuser=username		// sets SSH username ie ccpadmin
+			sshkey="<key>"			// sets SSH Public key
+			imagedfl=imagename		// sets CCP image name default
+			networkdfl=DV_VL1001		// vSphere PortGroup or DVS name
 
-	Cluster operations
+	Cluster operation commands
 		addcluster	<clustername> [provider=providername] [subnet=subnetname] [datastore=datastore] [datacenter=dc]
-					uses defaults for provider, subnet, datastore, datacenter if not provided
+			// Uses preconfigured defaults for provider, subnet, datastore, datacenter if not provided
 		delcluster <clustername>
-		getcluster <clustername> // pulls cluster info - master node IP(s), Addon, # worker nodes
-		scalecluster <clustername> workers=# [pool=poolname] // scale to this many worker nodes in a cluster
+		getcluster <clustername>				// pulls cluster info - master node IP(s), Addon, # worker nodes
+		scalecluster <clustername> workers=# [pool=poolname]	// scale to this many worker nodes in a cluster
 
-	cluster Addon
-		addclusteraddon <clustername> <addon> // install an addon
-		delclusteraddon <clustername> <addon> // install an addon
-		getclusteraddon <clustername> <addon> // install an addon
+	Cluster Addon commands
+		addclusteraddon <clustername> <addon>	// install an addon
+		delclusteraddon <clustername> <addon>	// install an addon
+		getclusteraddon <clustername> <addon>	// install an addon
 
-	kubectl config
-		getkubeconf <clustername>  // gets kubeconf
+	Kubectl config commands
+		getkubeconf <clustername>  		// gets kubeconf
 
+	Debugging
+		debug=N			// Debug level 0 (default), 1 (info), 2 (function entry/exit and variables), 3 (full debug including JSON)
 		`)
 }
 
@@ -1258,6 +1265,9 @@ func main() {
 			return
 		case "getcp":
 			menuGetCP(Settings)
+			return
+		case "helpcp":
+			menuHelpCP()
 			return
 		// Clusters
 		case "addcluster":

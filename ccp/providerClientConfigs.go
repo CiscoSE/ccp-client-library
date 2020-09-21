@@ -20,7 +20,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 )
 
@@ -36,15 +35,6 @@ type ProviderClientConfig struct {
 	Password           *string `json:"password,omitempty" `
 	InsecureSkipVerify *bool   `json:"insecure_skip_verify,omitempty" `
 }
-
-// // Vsphere struct: now in clusters.go
-// type Vsphere struct {
-// 	Datacenter *string   `json:"datacenter,omitempty"`
-// 	Datastore  *string   `json:"datastore,omitempty"`
-// 	Networks   *[]string `json:"networks,omitempty"`
-// 	Cluster    *string   `json:"clusters,omitempty"`
-// 	Pools      *string   `json:"resource_pool,omitempty"`
-// }
 
 // NetworkProviderSubnet struct
 type NetworkProviderSubnet struct {
@@ -72,7 +62,6 @@ func (s *Client) GetNetworkProviderSubnetByName(networkProviderName string) (*Ne
 	// var x is each singular networkProviderSubnets struct
 	for _, x := range networkProviderSubnets {
 		if networkProviderName == string(*x.Name) {
-			log.Printf("[ERROR] NEtwork Provider Names %s", string(*x.Name))
 			Debug(2, "Found matching network provider "+*x.Name)
 			return &x, nil
 		}
@@ -104,8 +93,6 @@ func (s *Client) GetNetworkProviderSubnets() ([]NetworkProviderSubnet, error) {
 
 	return data, nil
 }
-
-// ----- working
 
 // GetInfraProviders Get and return All Infra Providers
 func (s *Client) GetInfraProviders() ([]ProviderClientConfig, error) {
@@ -175,7 +162,7 @@ func (s *Client) GetInfraProviderByName(providerName string) (*ProviderClientCon
 	return nil, errors.New("Infra provider " + providerName + " not found")
 }
 
-// Create Vsphere Provider Client Config
+// AddVsphereProviderClientConfig Create Vsphere Provider Client Config
 func (s *Client) AddVsphereProviderClientConfig(providerClientConfig *ProviderClientConfig) (*ProviderClientConfig, error) {
 
 	url := s.BaseURL + "/v3/providers/"
@@ -209,6 +196,7 @@ func (s *Client) AddVsphereProviderClientConfig(providerClientConfig *ProviderCl
 	return &data, nil
 }
 
+// DeleteProviderClientConfig delete a provider
 func (s *Client) DeleteProviderClientConfig(providerUUID string) error {
 
 	if providerUUID == "" {
@@ -229,6 +217,7 @@ func (s *Client) DeleteProviderClientConfig(providerUUID string) error {
 	return nil
 }
 
+// PatchProviderClientConfig patch an existing provider
 func (s *Client) PatchProviderClientConfig(provider *ProviderClientConfig, providerUUID string) (*ProviderClientConfig, error) {
 
 	var data ProviderClientConfig

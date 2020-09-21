@@ -265,6 +265,7 @@ type ClusterInstalledAddons struct {
 	} `json:"results"`
 }
 
+// Results - results for AddOns that have been installed or are installing
 type Results struct {
 	Name          *string   `json:"name,omitempty"`
 	Namespace     *string   `json:"namespace,omitempty"`
@@ -275,6 +276,7 @@ type Results struct {
 	AddonStatus   *Status   `json:"status,omitempty"`
 }
 
+// Status - status for AddOns that have been installed or are installing
 type Status struct {
 	Name             *string `json:"name,omitempty"`
 	HelmStatus       *string `json:"helmStatus,omitempty"`
@@ -1241,6 +1243,7 @@ func (s *Client) InstallAddonHarbor(clusterUUID string) error {
 	return nil
 }
 
+// InstallAddon installs addon and waits for it to finish
 func (s *Client) InstallAddon(clusterUUID string, addonName string) error {
 
 	var jsonBody []byte
@@ -1382,6 +1385,7 @@ func (s *Client) InstallAddon(clusterUUID string, addonName string) error {
 	return nil
 }
 
+// InstallAddonAndWaitUntilInstalled install addon and wait until it's completed
 func (s *Client) InstallAddonAndWaitUntilInstalled(clusterUUID string, addonName string, jsonBody []byte) error {
 
 	url := s.BaseURL + "/v3/clusters/" + clusterUUID + "/addons/"
@@ -1691,6 +1695,7 @@ func (s *Client) GetClusterInstalledAddons(clusterUUID string) (*ClusterInstalle
 	return data, nil
 }
 
+// IsAddonInstalled check if addon is installed (bool)
 func (s *Client) IsAddonInstalled(clusterUUID string, addonName string) (*bool, error) {
 
 	clusterAddons, err := s.GetClusterInstalledAddons(clusterUUID)
@@ -1822,6 +1827,7 @@ func (s *Client) InstallAddonKubeflow(clusterUUID string) error {
 	return nil
 }
 
+// GetKubeflowAddonConfig for kubeflow
 func (s *Client) GetKubeflowAddonConfig(clusterUUID string) ([]byte, error) {
 	Debug(1, "Entered InstallAddonKubeflow for UUID "+clusterUUID)
 
@@ -1905,6 +1911,7 @@ func (s *Client) PatchCluster(cluster *Cluster, clusterUUID string) (*Cluster, e
 	return cluster, nil
 }
 
+// DeleteAddon delete an Addon
 func (s *Client) DeleteAddon(clusterUUID string, addonName string) error {
 
 	if clusterUUID == "" {
@@ -1956,6 +1963,7 @@ func (s *Client) DeleteAddon(clusterUUID string, addonName string) error {
 	return nil
 }
 
+// DeleteAddonAndConfirm delete and confirm
 func (s *Client) DeleteAddonAndConfirm(clusterUUID string, addonName string) error {
 
 	url := s.BaseURL + "/v3/clusters/" + clusterUUID + "/addons/" + addonName + "/"
