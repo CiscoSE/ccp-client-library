@@ -843,11 +843,7 @@ func (s *Client) AddClusterBasic(cluster *Cluster) (*Cluster, error) {
 	}
 
 	// loop over array of WorkerNodePool
-<<<<<<< HEAD
-	for k, v := range *cluster.WorkerNodePool {
-=======
 	for _, v := range *cluster.WorkerNodePool {
->>>>>>> 8a6443f82b00834b85482ca0d34528b5ca62d40a
 
 		if nonzero(v.SSHUser) {
 			return nil, errors.New("v.SSHUser is missing")
