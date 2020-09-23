@@ -29,10 +29,13 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 ## Quick Start
 
+Download CCP Client Library
+`go get -u "github.com/CiscoSE/ccp-client-library/ccp"`
+
 ```golang
 package main
 
-import "github.com/ccp-clientlibrary-go/ccp”
+import "github.com/CiscoSE/ccp-client-library/ccp”
 
 /*
   Define new CCP client
@@ -69,7 +72,7 @@ if err != nil {
 
 For some situations it may be easier to have the configuration represented as JSON rather than conifguring individually as per the  examples below (e.g. AddCluster). In this scenario you can either build the JSON file yourself or monitor the API POST call for the JSON data sent to CCP. This can be achieved using the browsers built in developer tools. See the following document for screenshots of how to find the POST call in the Chrome Developer Tools.
 
-[Screenshots](https://github.com/conmurphy/ccp-clientlibrary-go/blob/master/README-DEVELOPER-TOOLS.md)
+[Screenshots](github.com/CiscoSE/ccp-client-library/blob/master/README-DEVELOPER-TOOLS.md)
 
 
 Example JSON File - newCluster.json
@@ -115,7 +118,7 @@ package main
 
 import (
   "fmt"
-  "github.com/ccp-clientlibrary-go/ccp"
+  "github.com/CiscoSE/ccp-client-library/ccp"
 )
 
 
