@@ -15,10 +15,8 @@ import (
 	"strings"
 	"time"
 
-	// "github.com/rob-moss/ccp-clientlibrary-go/ccp"
-	"github.com/CiscoSE/ccp-client-library/ccp"
-	// fork this github repo in to your ~/git/src dir
 	// go get -u github.com/CiscoSE/ccp-client-library
+	"github.com/CiscoSE/ccp-client-library/ccp"
 )
 
 // user.Current().HomeDir
@@ -125,44 +123,48 @@ func menuHelp() {
 	ccpctl help
 	-----------
 
-	add Control Plane info
-		setcp <asks interactive>
-		setcp cpname=cpname clusterdfl=clustername providerdfl=providername subnetdfl=subnetname datastoredfl=datastore datacenterdfl=dc
-		setcp cpNetworkProviderUUID // looks up name, sets default
-		setcp cpCloudProviderUUID // looks up name, sets default
-		setcp cpNetworkVLAN // vSphere PortGroup
-		setcp cpDatacenter	// vSphere DC
-		setcp cpDatastore // vSphere DS
-		delcp cpName // deletes Control Plane info
-		getcp // lists CPs if no args
-		getcps // lists CPs if no args
-		getcp cpName // lists CP details
+	Help screens
+		help					// Shows this help
+		helpcp					// Shows Control Plane help
+		helpcluster				// Shows cluster help
 
-	cluster operations
+	Control Plane config commands
+		helpcp					// Shows Control Plane help
+		getcp 					// Shows current CP settings
+		setcp cpname=cpname			// Name of Controlplane
+			cpuser=ccpadmin			// Name of CCP userid in Control Plane
+			cppass=ccp1234			// Password for CCP userid
+			cpurl=https://10.1.1.1:443 	// URL of CCP
+			providerdfl=providername 	// name of vSphere provider, will automatically look up and keep UUID
+			subnetdfl=default-network-subnet	// Subnet name, will automatically look up and keep UUID
+			datastoredfl=datastore 		// default Datastore
+			datacenterdfl=dc 		// default Datacenter
+			vsclusterdfl=vsclustername	// vSphere cluster name default
+			sshuser=username		// sets SSH username ie ccpadmin
+			sshkey="<key>"			// sets SSH Public key
+			imagedfl=imagename		// sets CCP image name default
+			networkdfl=DV_VL1001		// vSphere PortGroup or DVS name
+
+	Cluster operation commands
 		addcluster	<clustername> [provider=providername] [subnet=subnetname] [datastore=datastore] [datacenter=dc]
-					uses defaults for provider, subnet, datastore, datacenter if not provided
-		setcluster	<clustername> [provider=providername] [subnet=subnetname] [datastore=datastore] [datacenter=dc]
-					uses defaults for provider, subnet, datastore, datacenter if not provided
+			// Uses preconfigured defaults for provider, subnet, datastore, datacenter if not provided
 		delcluster <clustername>
-		getcluster <clustername> // pulls cluster info - master node IP(s), Addon, # worker nodes
-		getcluster <clustername> kubeconfig // gets and outputs kubeconfig
-		getcluster <clustername> Addon // lists Addon installed to cluster
-		getcluster <clustername> masters // lists Master nodes installed to cluster
-		getcluster <clustername> workers // lists Worker nodes installed to cluster
-		scalecluster <clustername> workers=# [pool=poolname] // scale to this many worker nodes in a cluster
+		getcluster <clustername>				// pulls cluster info - master node IP(s), Addon, # worker nodes
+		scalecluster <clustername> workers=# [pool=poolname]	// scale to this many worker nodes in a cluster
 
-	cluster Addon
-		addclusteraddon <clustername> <addon> // install an addon
-		delclusteraddon <clustername> <addon> // install an addon
-		getclusteraddon <clustername> <addon> // install an addon
+	Cluster Addon commands
+		addclusteraddon <clustername> <addon>	// install an addon
+		delclusteraddon <clustername> <addon>	// install an addon
+		getclusteraddon <clustername> <addon>	// install an addon
 
-	kubectl config
-		setkubeconf <clustername> [cpname] // sets ~/.kube/config to kubeconf
+	Kubectl config commands
+		getkubeconf <clustername>  		// gets kubeconf
 
-	control plane cluster install (API V2)
-		installcp [subnet=subnetname] [datastore=datastore] [datacenter=dc] [iprange=1.2.3.4]
-			[ipstart=1.2.3.4] [ipend=1.2.3.4] [cpuser=cpUser|use defaults] [cppass=cpPass|use defaults]
-			all CP things
+	Debugging
+		debug=N			// Debug level 0 (default), 1 (info), 2 (function entry/exit and variables), 3 (full debug including JSON)
+
+	Output
+		json=true	// Output the configuration into JSON format
 		`)
 }
 
@@ -213,11 +215,11 @@ func menuHelpCP() {
 			sshkey=sshkey					// must have
 			cpuser=admin					// must have
 			cppass=password					// must have
-			cpurl=https://10.100.100.1  	// must have
+			cpurl=https://10.100.100.1  			// must have
 			// below defaults are optional, can be specified on the commandline, or these defults will be used
 			clusterdfl=clustername	
 			providerdfl=providername 
-			subnetdfl=subnetname 
+			subnetdfl=default-network-subnet 
 			datastoredfl=datastore 
 			datacenterdfl=dc 
 			vsclusterdfl=vsphereclustername
@@ -226,15 +228,13 @@ func menuHelpCP() {
 }
 
 // MenuSetCP sets Control Plane data
-// func (s *Defaults) menusetCP(args []string) (*ControlPlane, error) {
 func menuSetCP(args []string, Settings Defaults, client *ccp.Client) (*Defaults, error) {
 	if len(args) < 1 {
 		menuHelpCP()
 		// fmt.Println("Not enough args")
 		return nil, errors.New("Not enough args")
 	}
-	// fmt.Println(args)
-	// var newCP ControlPlane // new ControlPlane struct - populate this and return it
+
 	// get all args and loop over case statement to collect all vars
 	for _, arg := range args {
 		// fmt.Println("arg = " + arg)
@@ -242,7 +242,6 @@ func menuSetCP(args []string, Settings Defaults, client *ccp.Client) (*Defaults,
 		param, value := splitparam(arg)
 		// fmt.Println("param: " + param + " value: " + value)
 
-		//	cpname=cpname provider=providername subnet=subnetname datastore=datastore datacenter=dc
 		switch param {
 		case "cpname":
 			fmt.Println("cpname updated with: " + value)
@@ -305,8 +304,6 @@ func menuSetCP(args []string, Settings Defaults, client *ccp.Client) (*Defaults,
 		}
 	}
 
-	// check if no args - then do wizard or help
-
 	// if args are good, populate CP struct
 	if !nonzero(Settings.CPName) {
 		menuHelpCP()
@@ -359,7 +356,6 @@ func prettyPrintJSONString(jsonBody string) {
 	err := json.Indent(&prettyJSON, []byte(jsonBody), "", "\t")
 	if err != nil {
 		log.Println("JSON parse error: ", err)
-		// return err
 	}
 	fmt.Println(&prettyJSON)
 }
@@ -370,13 +366,11 @@ func prettyPrintJSONCluster(cluster *ccp.Cluster) {
 	jsonBody, err := json.Marshal(cluster)
 	if err != nil {
 		fmt.Println("JSON Marshal error:", err)
-		// return err
 	}
 
 	err = json.Indent(&prettyJSON, jsonBody, "", "\t")
 	if err != nil {
 		log.Println("JSON parse error: ", err)
-		// return err
 	}
 	fmt.Println(&prettyJSON)
 }
@@ -387,13 +381,11 @@ func prettyPrintJSONClusters(clusters *[]ccp.Cluster) {
 	jsonBody, err := json.Marshal(clusters)
 	if err != nil {
 		fmt.Println("JSON Marshal error:", err)
-		// return err
 	}
 
 	err = json.Indent(&prettyJSON, jsonBody, "", "\t")
 	if err != nil {
 		log.Println("JSON parse error: ", err)
-		// return err
 	}
 	fmt.Println(&prettyJSON)
 }
@@ -404,13 +396,11 @@ func prettyPrintJSONProvider(provider *ccp.ProviderClientConfig) {
 	jsonBody, err := json.Marshal(provider)
 	if err != nil {
 		fmt.Println("JSON Marshal error:", err)
-		// return err
 	}
 
 	err = json.Indent(&prettyJSON, jsonBody, "", "\t")
 	if err != nil {
 		log.Println("JSON parse error: ", err)
-		// return err
 	}
 	fmt.Println(&prettyJSON)
 }
@@ -421,13 +411,11 @@ func prettyPrintJSONSubnet(provider *ccp.NetworkProviderSubnet) {
 	jsonBody, err := json.Marshal(provider)
 	if err != nil {
 		fmt.Println("JSON Marshal error:", err)
-		// return err
 	}
 
 	err = json.Indent(&prettyJSON, jsonBody, "", "\t")
 	if err != nil {
 		log.Println("JSON parse error: ", err)
-		// return err
 	}
 	fmt.Println(&prettyJSON)
 }
@@ -444,7 +432,6 @@ func prettyPrintJSONClusterAddon(clusterAddon *ccp.ClusterInstalledAddons) {
 	err = json.Indent(&prettyJSON, jsonBody, "", "\t")
 	if err != nil {
 		log.Println("JSON parse error: ", err)
-		// return err
 	}
 	fmt.Println(&prettyJSON)
 }
@@ -460,7 +447,6 @@ func prettyPrintJSONClusterAddonCatalogue(clusterAddon *ccp.AddonsCatalogue) {
 	err = json.Indent(&prettyJSON, jsonBody, "", "\t")
 	if err != nil {
 		log.Println("JSON parse error: ", err)
-		// return err
 	}
 	fmt.Println(&prettyJSON)
 }
@@ -469,7 +455,6 @@ func menuGetClusters(client *ccp.Client, jsonout bool) {
 	clusters, err := client.GetClusters()
 	if err != nil {
 		fmt.Println("GetClusters error:", err)
-		// return err
 	}
 
 	if jsonout {
@@ -479,8 +464,6 @@ func menuGetClusters(client *ccp.Client, jsonout bool) {
 			fmt.Println("Clustername: ", *cluster.Name, " Status: ", *cluster.Status, " Cluster type: ", *cluster.Type, " Cluster UUID: ", *cluster.UUID)
 		}
 	}
-
-	// return nil
 }
 
 func getKubeVerFromImage(value string) string {
@@ -753,26 +736,54 @@ func menuAddCluster(client *ccp.Client, args []string, Settings *Defaults) (*ccp
 	return cluster, nil
 }
 
+func menuPatchClusterFromFile(client *ccp.Client, jsonFile string, jsonout bool) (*ccp.Cluster, error) {
+	// --- AddCluster from JSON File
+	// jsonFile := "./cluster.json"
+	// Convert a JSON file to a Cluster struct
+	newCluster, err := client.ConvertJSONToCluster(jsonFile)
+	if err != nil {
+		fmt.Println("error:", err)
+	} else {
+		fmt.Println("Success")
+	}
+
+	cluster, err := client.GetClusterByName(*newCluster.Name)
+	if err != nil {
+		fmt.Println("Error from GetClusterByName:")
+		fmt.Println(err)
+		return nil, err
+	}
+	fmt.Println("* Cluster to Patch: " + *newCluster.Name)
+	createdCluster, err := client.PatchCluster(newCluster, *cluster.UUID)
+	if err != nil {
+		fmt.Println("Error from AddCluster:")
+		fmt.Println(err)
+		return nil, err
+	}
+	fmt.Println("* Cluster sent to API: " + *createdCluster.Name)
+	return newCluster, nil
+}
+
 func menuAddClusterFromFile(client *ccp.Client, jsonFile string, jsonout bool) (*ccp.Cluster, error) {
 	// --- AddCluster from JSON File
 	// jsonFile := "./cluster.json"
-	// // Convert a JSON file to a Cluster struct
-	// newCluster, err := client.ConvertJSONToCluster(jsonFile)
-	// if err != nil {
-	// 	fmt.Println("error:", err)
-	// } else {
-	// 	fmt.Println("Success")
-	// }
+	// Convert a JSON file to a Cluster struct
+	newCluster, err := client.ConvertJSONToCluster(jsonFile)
+	if err != nil {
+		fmt.Println("error:", err)
+	} else {
+		fmt.Println("Success")
+	}
 
-	// fmt.Println("* New cluster name to create: " + *newCluster.Name)
-	// createdCluster, err := client.AddCluster(newCluster)
-	// if err != nil {
-	// 	fmt.Println("Error from AddCluster:")
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// fmt.Println("* Cluster sent to API: " + *createdCluster.Name)
-	return nil, nil
+	fmt.Println("* New cluster name to create: " + *newCluster.Name)
+	createdCluster, err := client.AddCluster(newCluster)
+	if err != nil {
+		fmt.Println("Error from AddCluster:")
+		fmt.Println(err)
+		return nil, err
+	}
+	fmt.Println("* Cluster sent to API: " + *createdCluster.Name)
+	return newCluster, nil
 }
 
 func menuGetCluster(client *ccp.Client, clusterName string, jsonout bool) error {
@@ -790,13 +801,14 @@ func menuGetCluster(client *ccp.Client, clusterName string, jsonout bool) error 
 }
 
 func menuGetClusterKubeconfig(client *ccp.Client, clusterName string) error {
+	Debug(2, "Getting kubeconfig for"+clusterName)
 	cluster, err := client.GetClusterByName(clusterName)
 	if err != nil {
 		fmt.Println("GetCluster error:", err)
 		return err
 	}
 
-	prettyPrintJSONString(*cluster.KubeConfig)
+	fmt.Println(*cluster.KubeConfig)
 
 	return nil
 }
@@ -869,6 +881,84 @@ func menuGetClusterAddonCatalogue(client *ccp.Client, clusterName string, jsonou
 	}
 	fmt.Println("Addon available:")
 	fmt.Printf("%v\n", addon)
+	return nil
+}
+
+func menuInstallClusterAddonNew(client *ccp.Client, clusterName string, addon string, jsonout bool) error {
+	cluster, err := client.GetClusterByName(clusterName)
+	if err != nil {
+		fmt.Println("GetCluster error:", err)
+		return err
+	}
+
+	// case "kubernetes-dashboard":
+	// case "ccp-efk":
+	// case "ccp-monitor":
+	// case "istio":
+	// case "harbor":
+	// case "ccp-kubeflow":
+
+	switch addon {
+	case "monitoring", "ccp-monitor":
+		err = client.InstallAddon(*cluster.UUID, "ccp-monitor")
+		if err != nil {
+			return err
+		}
+		fmt.Println("* Installed " + addon + " addon. Check status with getaddon")
+	case "logging", "ccp-efk":
+		err = client.InstallAddon(*cluster.UUID, "ccp-efk")
+		if err != nil {
+			return err
+		}
+	case "harbor":
+		err = client.InstallAddon(*cluster.UUID, "harbor")
+		if err != nil {
+			return err
+		}
+		fmt.Println("* Installed " + addon + " addon. Check status with getaddon")
+	case "hx-csi":
+		err = client.InstallAddon(*cluster.UUID, "harbor")
+		if err != nil {
+			return err
+		}
+		fmt.Println("* Installed " + addon + " addon. Check status with getaddon")
+	case "kubeflow", "ccp-kubeflow":
+		err = client.InstallAddon(*cluster.UUID, "ccp-kubeflow")
+		if err != nil {
+			return err
+		}
+		fmt.Println("* Installed " + addon + " addon. Check status with getaddon")
+	case "dashboard", "kubernetes-dashboard":
+		err = client.InstallAddon(*cluster.UUID, "kubernetes-dashboard")
+		if err != nil {
+			return err
+		}
+		fmt.Println("* Installed " + addon + " addon. Check status with getaddon")
+	case "istio":
+		err = client.InstallAddon(*cluster.UUID, "istio")
+		if err != nil {
+			return err
+		}
+		fmt.Println("* Installed " + addon + " addon. Check status with getaddon")
+	case "all":
+		err = client.InstallAddonMonitoring(*cluster.UUID)
+		fmt.Println("* Installing monitoring Addon. Check status with getaddon")
+		err = client.InstallAddonLogging(*cluster.UUID)
+		fmt.Println("* Installing logging Addon. Check status with getaddon")
+		err = client.InstallAddonIstio(*cluster.UUID)
+		fmt.Println("* Installing istio Addon. Check status with getaddon")
+		err = client.InstallAddonHarbor(*cluster.UUID)
+		fmt.Println("* Installing harbor Addon. Check status with getaddon")
+		err = client.InstallAddonHXCSI(*cluster.UUID)
+		fmt.Println("* Installing hx-csi Addon. Check status with getaddon")
+		err = client.InstallAddonKubeflow(*cluster.UUID)
+		fmt.Println("* Installing kubeflow Addon. Check status with getaddon")
+		err = client.InstallAddonDashboard(*cluster.UUID)
+		fmt.Println("* Installing dashboard Addon. Check status with getaddon")
+
+	default:
+		return errors.New("Unknown addon:" + addon + ".  Valid options are: monitoring, logging, istio, harbor, hx-csi, kubeflow, dashboard")
+	}
 	return nil
 }
 
@@ -1106,44 +1196,6 @@ func menuScaleCluster(client *ccp.Client, clusterName string, workers int, jsono
 	return nil
 }
 
-// ccpctl help
-//
-// add Control Plane info
-//		setcp cpname=cpname provider=providername subnet=subnetname datastore=datastore datacenter=dc
-//		setcp cpNetworkProviderUUID // looks up name, sets default
-//		setcp cpCloudProviderUUID // looks up name, sets default
-//		setcp cpNetworkVLAN // vSphere PortGroup
-//		setcp cpDatacenter	// vSphere DC
-//		setcp cpDatastore // vSphere DS
-//		delcp cpName // deletes Control Plane info
-//		getcp // lists CPs if no args
-//		getcps // lists CPs if no args
-//		getcp cpName // lists CP details
-// cluster operations
-//		addcluster	<clustername> [provider=providername] [subnet=subnetname] [datastore=datastore] [datacenter=dc]
-//					uses defaults for provider, subnet, datastore, datacenter if not provided
-//		setcluster	<clustername> [provider=providername] [subnet=subnetname] [datastore=datastore] [datacenter=dc]
-//					uses defaults for provider, subnet, datastore, datacenter if not provided
-//		delcluster <clustername>
-//		getcluster <clustername> // pulls cluster info - master node IP(s), Addon, # worker nodes
-//		getcluster <clustername> kubeconfig // gets and outputs kubeconfig
-//		getcluster <clustername> Addon // lists Addon installed to cluster
-//		getcluster <clustername> masters // lists Master nodes installed to cluster
-//		getcluster <clustername> workers // lists Worker nodes installed to cluster
-//		scalecluster <clustername> workers=# [pool=poolname] // scale to this many worker nodes in a cluster
-// cluster Addon
-// 		addclusteraddon <clustername> <addon> // install an addon
-// 		delclusteraddon <clustername> <addon> // install an addon
-// 		getclusteraddon <clustername> <addon> // install an addon
-//
-// kubectl config
-//		setkubeconf <clustername> [cpname] // sets ~/.kube/config to kubeconf
-//
-// control plane cluster install (API V2)
-//		installcp [subnet=subnetname] [datastore=datastore] [datacenter=dc] [iprange=1.2.3.4]
-//			[ipstart=1.2.3.4] [ipend=1.2.3.4] [cpuser=cpUser|use defaults] [cppass=cpPass|use defaults]
-//			all CP things
-
 // main
 func main() {
 	fmt.Println("* Entered main")
@@ -1199,10 +1251,6 @@ func main() {
 		}
 	}
 
-	// ----
-	// do the same for debuglvl
-	// ----
-
 	//
 	// ---- Main code to check commandline params ---- //
 	//
@@ -1222,9 +1270,9 @@ func main() {
 				fmt.Println("* Write Defults error: ", err)
 				return
 			}
+			fmt.Println("* Logged in to Control Plane successfully")
 			return
 		case "setdefault":
-			// fmt.Println("setdefault " + string(pos))
 			fmt.Println("Not implemented yet")
 			return
 		case "setcp":
@@ -1282,11 +1330,18 @@ func main() {
 			_, workers := splitparam(os.Args[3])
 			menuScaleCluster(client, os.Args[2], strtoint(workers), jsonout)
 			return
+		case "getkubeconf":
+			menuGetClusterKubeconfig(client, os.Args[2])
+			return
 		// Infra providers
 		case "getproviders":
 			menuGetProviders(client, jsonout)
 			return
 		case "getprovider":
+			if len(os.Args) <= 2 {
+				fmt.Println("Need provider name, exiting")
+				return
+			}
 			menuGetProvider(client, os.Args[2], jsonout)
 			return
 		// Subnets
@@ -1294,6 +1349,10 @@ func main() {
 			menuGetSubnets(client, jsonout)
 			return
 		case "getsubnet":
+			if len(os.Args) <= 2 {
+				fmt.Println("Need subnet name, exiting")
+				return
+			}
 			menuGetSubnet(client, os.Args[2], jsonout)
 			return
 		// Addons
@@ -1330,15 +1389,21 @@ func main() {
 
 			fmt.Println("Deleted cluster addon ", os.Args[3])
 			return
-		// print help
 		case "addclusterfromfile":
 			if len(os.Args[1:]) < 2 {
 				fmt.Println("Need cluster filename, exiting")
 				return
 			}
 			menuAddClusterFromFile(client, os.Args[2], jsonout)
+		// print help
 		case "help":
 			menuHelp()
+			return
+		case "helpcp":
+			menuHelpCP()
+			return
+		case "helpcluster":
+			menuClusterHelp()
 			return
 		default:
 			fmt.Printf("Unknown option:   %s.\n", arg)
@@ -1346,251 +1411,5 @@ func main() {
 	}
 
 	fmt.Println("* Exiting")
-
-	return
-
-	// --- AddCluster from JSON File
-	// jsonFile := "./cluster.json"
-	// // Convert a JSON file to a Cluster struct
-	// newCluster, err := client.ConvertJSONToCluster(jsonFile)
-	// if err != nil {
-	// 	fmt.Println("error:", err)
-	// } else {
-	// 	fmt.Println("Success")
-	// }
-
-	// fmt.Println("* New cluster name to create: " + *newCluster.Name)
-	// createdCluster, err := client.AddCluster(newCluster)
-	// if err != nil {
-	// 	fmt.Println("Error from AddCluster:")
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// fmt.Println("* Cluster sent to API: " + *createdCluster.Name)
-
-	// --- Delete Cluster
-	// clustername := string("romoss-testcp01-tenant04")
-	// cluster, err := client.GetClusterByName(clustername)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// err = client.DeleteCluster(*cluster.UUID)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-
-	// --- create the Cluster struct, for later sending to the AddCluster function
-	// // https://stackoverflow.com/questions/51916592/fill-a-struct-which-contains-slices
-	// ccpsshuser := ccp.String("ccpadmin")
-	// ccpsshkey := ccp.String("ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAFXQk0bZlFiFV6FD5DT0HdVJ2TsL9wlciD3UkcFI+/kpIj2AfOqqoQjt0BYZKzNJ6z4a25nkIueQJFog04S0/+PkQGX/Hc2DVccatAOWMRCedwukdgfoURLHyEdgl9EeCmiyqnUe6XVxiqcX9dkqXuI1KsP/oRir8ZAui3nXvdyUm8TGA== ccpadmin@galaxy.cisco.com")
-	// ccptemplateimg := ccp.String("hx1-ccp-tenant-image-1.16.3-ubuntu18-6.1.1-pre")
-	// kubernetesversion := ccp.String("1.16.3")
-	// newCluster := &ccp.Cluster{
-	// 	Name: ccp.String("romoss-testcp01-tenant03"),
-	// 	Type: ccp.String("vsphere"),
-	// 	// WorkerNodePool: newWorkers,
-	// 	WorkerNodePool: &[]ccp.WorkerNodePool{
-	// 		// first worker node pool
-	// 		ccp.WorkerNodePool{
-	// 			Name:              ccp.String("node-pool"), // default name
-	// 			Size:              ccp.Int64(1),
-	// 			VCPUs:             ccp.Int64(8),
-	// 			Memory:            ccp.Int64(32768),
-	// 			Template:          ccptemplateimg,
-	// 			SSHUser:           ccpsshuser,
-	// 			SSHKey:            ccpsshkey,
-	// 			KubernetesVersion: kubernetesversion,
-	// 		},
-	// 	},
-	// 	MasterNodePool: &ccp.MasterNodePool{
-	// 		Name:              ccp.String("master-group"),
-	// 		Size:              ccp.Int64(1),
-	// 		VCPUs:             ccp.Int64(2),
-	// 		Memory:            ccp.Int64(16384),
-	// 		Template:          ccptemplateimg,
-	// 		SSHUser:           ccpsshuser,
-	// 		SSHKey:            ccpsshkey,
-	// 		KubernetesVersion: kubernetesversion,
-	// 	},
-	// 	Infra: &ccp.Infra{
-	// 		Datastore:  ccp.String("GFFA-HX1-CCPInstallTest01"),
-	// 		Datacenter: ccp.String("GFFA-DC"),
-	// 		Networks:   &[]string{"DV_VLAN1060"},
-	// 		Cluster:    ccp.String("GFFA-HX1-Cluster"),
-	// 	},
-	// 	KubernetesVersion:  kubernetesversion,
-	// 	InfraProviderUUID:  infraProvider.UUID,
-	// 	SubnetUUID:         networkProviderSubnet.UUID,
-	// 	LoadBalancerIPNum:  ccp.Int64(2),
-	// 	IPAllocationMethod: ccp.String("ccpnet"),
-	// 	AWSIamEnabled:      ccp.Bool(false),
-	// 	NetworkPlugin: &ccp.NetworkPlugin{
-	// 		Name: ccp.String("calico"),
-	// 		Details: &ccp.NetworkPluginDetails{
-	// 			PodCIDR: ccp.String("192.168.0.0/16"),
-	// 		},
-	// 	},
-	// }
-	// fmt.Println(newCluster)
-
-	// // now create the cluster
-	// // fmt.Println("* New cluster name to create: " + *newCluster.Name)
-	// createdCluster, err := client.AddCluster(newCluster)
-	// if err != nil {
-	// 	fmt.Println("Error from AddCluster:")
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// fmt.Println("* Cluster sent to API: " + *createdCluster.Name)
-
-	// // ---- GetInfraProviderByName
-	// infraProvider, err := client.GetInfraProviderByName("vsphere")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// // Print out the providerClientConfig details
-	// fmt.Println("* Provider Config name: " + *infraProvider.Name + " hostname: " + *infraProvider.Address + " UUID: " + *infraProvider.UUID)
-
-	// cluster, err := client.GetClusterByName("romoss-testcp01-tenant02")
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-
-	// // GetAddon uses UUID
-	// Addon, err := client.GetAddonCatalogue(*cluster.UUID)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	//
-	// j, err := json.Marshal(Addon.CcpHxcsi)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// fmt.Println("Raw JSON for HX-CSI:")
-	// fmt.Println(string(j))
-
-	// --- this works!
-	// err = client.InstallAddonHXCSI(*cluster.UUID)
-	// if err != nil {
-	// 	ccp.Debug(1, "InstallAddonHXCSI Error:")
-	// 	fmt.Println(err)
-	// 	return
-	// }
-
-	// err = client.DeleteAddonHXCSI(*cluster.UUID)
-	// if err != nil {
-	// 	ccp.Debug(1, "DeleteAddonHXCSI Error:")
-	// 	fmt.Println(err)
-	// 	return
-	// }
-
-	// err = client.InstallAddonKubeflow(*cluster.UUID)
-	// if err != nil {
-	// 	ccp.Debug(1, "InstallAddonKubeflow Error:")
-	// 	fmt.Println(err)
-	// 	return
-	// }
-
-	// err = client.InstallAddonIstioOp(*cluster.UUID)
-	// if err != nil {
-	// 	ccp.Debug(1, "Error:")
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// time.Sleep(2 * time.Seconds)
-
-	// err = client.InstallAddonIstioInstance(*cluster.UUID)
-	// if err != nil {
-	// 	ccp.Debug(1, "Error:")
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// time.Sleep(2 * time.Seconds)
-
-	// err = client.InstallAddonIstio(*cluster.UUID)
-	// if err != nil {
-	// 	ccp.Debug(1, "Error:")
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// // time.Sleep(2 * time.Seconds)
-	// time.Sleep(2 * time.Second)
-
-	// err = client.InstallAddonMonitoring(*cluster.UUID)
-	// if err != nil {
-	// 	ccp.Debug(1, "Error:")
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// time.Sleep(2 * time.Second)
-
-	// err = client.InstallAddonLogging(*cluster.UUID)
-	// if err != nil {
-	// 	ccp.Debug(1, "Error:")
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// time.Sleep(2 * time.Second)
-
-	// err = client.InstallAddonHarborOp(*cluster.UUID)
-	// if err != nil {
-	// 	ccp.Debug(1, "Error:")
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// time.Sleep(2 * time.Seconds)
-
-	// err = client.InstallAddonHarborInstance(*cluster.UUID)
-	// if err != nil {
-	// 	ccp.Debug(1, "Error:")
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// time.Sleep(2 * time.Seconds)
-
-	// err = client.InstallAddonHarbor(*cluster.UUID)
-	// if err != nil {
-	// 	ccp.Debug(1, "Error:")
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// time.Sleep(2 * time.Second)
-
-	// ---- delete Addon
-	// err = client.DeleteAddonLogging(*cluster.UUID)
-	// if err != nil {
-	// 	ccp.Debug(1, "Error:")
-	// 	fmt.Println(err)
-	// 	return
-	// }
-
-	// err = client.DeleteAddonMonitor(*cluster.UUID)
-	// if err != nil {
-	// 	ccp.Debug(1, "Error:")
-	// 	fmt.Println(err)
-	// 	return
-	// }
-
-	// err = client.DeleteAddonIstio(*cluster.UUID)
-	// if err != nil {
-	// 	ccp.Debug(1, "Error:")
-	// 	fmt.Println(err)
-	// 	return
-	// }
-
-	// err = client.DeleteAddonHarbor(*cluster.UUID)
-	// if err != nil {
-	// 	ccp.Debug(1, "Error:")
-	// 	fmt.Println(err)
-	// 	return
-	// }
-
-	fmt.Printf("* Closed\n")
 
 }

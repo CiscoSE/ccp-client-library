@@ -16,6 +16,7 @@ or implied.*/
 package ccp
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -27,22 +28,13 @@ type ProviderClientConfig struct {
 	UUID               *string `json:"id,omitempty"`
 	Type               *string `json:"type,omitempty"`
 	Name               *string `json:"name,omitempty" `
+	Description        *string `json:"description,omitempty" `
 	Address            *string `json:"address,omitempty" `
 	Port               *int64  `json:"port,omitempty" `
 	Username           *string `json:"username,omitempty" `
+	Password           *string `json:"password,omitempty" `
 	InsecureSkipVerify *bool   `json:"insecure_skip_verify,omitempty" `
-	// Password may be needed to set up a new Provider
-	// Config *Config `json:"config,omitempty"`
 }
-
-// // Vsphere struct: now in clusters.go
-// type Vsphere struct {
-// 	Datacenter *string   `json:"datacenter,omitempty"`
-// 	Datastore  *string   `json:"datastore,omitempty"`
-// 	Networks   *[]string `json:"networks,omitempty"`
-// 	Cluster    *string   `json:"clusters,omitempty"`
-// 	Pools      *string   `json:"resource_pool,omitempty"`
-// }
 
 // NetworkProviderSubnet struct
 type NetworkProviderSubnet struct {
@@ -101,8 +93,6 @@ func (s *Client) GetNetworkProviderSubnets() ([]NetworkProviderSubnet, error) {
 
 	return data, nil
 }
-
-// ----- working
 
 // GetInfraProviders Get and return All Infra Providers
 func (s *Client) GetInfraProviders() ([]ProviderClientConfig, error) {
@@ -170,4 +160,95 @@ func (s *Client) GetInfraProviderByName(providerName string) (*ProviderClientCon
 	}
 
 	return nil, errors.New("Infra provider " + providerName + " not found")
+}
+
+// AddVsphereProviderClientConfig Create Vsphere Provider Client Config
+func (s *Client) AddVsphereProviderClientConfig(providerClientConfig *ProviderClientConfig) (*ProviderClientConfig, error) {
+
+	url := s.BaseURL + "/v3/providers/"
+
+	j, err := json.Marshal(&providerClientConfig)
+
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(j))
+
+	if err != nil {
+		return nil, err
+	}
+
+	bytes, err := s.doRequest(req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var data ProviderClientConfig
+
+	err = json.Unmarshal(bytes, &data)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &data, nil
+}
+
+// DeleteProviderClientConfig delete a provider
+func (s *Client) DeleteProviderClientConfig(providerUUID string) error {
+
+	if providerUUID == "" {
+		return errors.New("Provider UUID to delete is required")
+	}
+
+	url := s.BaseURL + "/v3/providers/" + providerUUID + "/"
+
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		return err
+	}
+	_, err = s.doRequest(req)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// PatchProviderClientConfig patch an existing provider
+func (s *Client) PatchProviderClientConfig(provider *ProviderClientConfig, providerUUID string) (*ProviderClientConfig, error) {
+
+	var data ProviderClientConfig
+
+	url := fmt.Sprintf(s.BaseURL + "/v3/providers/" + providerUUID + "/")
+
+	j, err := json.Marshal(provider)
+
+	if err != nil {
+
+		return nil, err
+	}
+
+	req, err := http.NewRequest("PATCH", url, bytes.NewBuffer(j))
+	if err != nil {
+		return nil, err
+	}
+
+	bytes, err := s.doRequest(req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(bytes, &data)
+
+	if err != nil {
+		return nil, err
+	}
+
+	provider = &data
+
+	return provider, nil
 }
