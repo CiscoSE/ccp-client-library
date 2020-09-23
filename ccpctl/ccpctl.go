@@ -1339,6 +1339,7 @@ func main() {
 			return
 		case "getprovider":
 			if len(os.Args) <= 2 {
+				fmt.Println("Need provider name, exiting")
 				return
 			}
 			menuGetProvider(client, os.Args[2], jsonout)
@@ -1348,6 +1349,10 @@ func main() {
 			menuGetSubnets(client, jsonout)
 			return
 		case "getsubnet":
+			if len(os.Args) <= 2 {
+				fmt.Println("Need subnet name, exiting")
+				return
+			}
 			menuGetSubnet(client, os.Args[2], jsonout)
 			return
 		// Addons
