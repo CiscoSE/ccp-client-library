@@ -1254,7 +1254,7 @@ func (s *Client) InstallAddon(clusterUUID string, addonName string) error {
 
 	switch addonName {
 
-	case "kubernetes-dashboard":
+	case "kubernetes-dashboard", "dashboard":
 		jsonBody = []byte(`
 		{
 			"displayName": "Dashboard",
@@ -1273,7 +1273,7 @@ func (s *Client) InstallAddon(clusterUUID string, addonName string) error {
 			return err
 		}
 
-	case "ccp-efk":
+	case "ccp-efk", "logging", "efk":
 		jsonBody = []byte(`
 		{
 			"displayName": "Logging",
@@ -1289,7 +1289,7 @@ func (s *Client) InstallAddon(clusterUUID string, addonName string) error {
 			return err
 		}
 
-	case "ccp-monitor":
+	case "ccp-monitor", "monitor", "grafana":
 		jsonBody = []byte(`
 		{
 			"displayName": "Monitoring",
@@ -1363,7 +1363,7 @@ func (s *Client) InstallAddon(clusterUUID string, addonName string) error {
 			return err
 		}
 
-	case "ccp-kubeflow":
+	case "ccp-kubeflow", "kubeflow":
 
 		jsonBody, err = s.GetKubeflowAddonConfig(clusterUUID)
 
@@ -1378,7 +1378,7 @@ func (s *Client) InstallAddon(clusterUUID string, addonName string) error {
 		}
 
 	default:
-		return errors.New("Incorrect addon name provided. Options are 'kubernetes-dashboard', 'ccp-efk', 'ccp-monitor', 'cp-istio','harbor', 'ccp-kubeflow'")
+		return errors.New("Incorrect addon name provided. Options are 'kubernetes-dashboard', 'ccp-efk', 'ccp-monitor', 'ccp-istio', 'harbor', 'ccp-kubeflow'")
 
 	}
 
