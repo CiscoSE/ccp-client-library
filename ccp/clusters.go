@@ -1289,7 +1289,7 @@ func (s *Client) InstallAddon(clusterUUID string, addonName string) error {
 			return err
 		}
 
-	case "ccp-monitor", "monitor", "grafana":
+	case "ccp-monitor", "monitor", "monitoring", "grafana":
 		jsonBody = []byte(`
 		{
 			"displayName": "Monitoring",
@@ -1375,6 +1375,24 @@ func (s *Client) InstallAddon(clusterUUID string, addonName string) error {
 
 		if err != nil {
 			return err
+		}
+
+	case "hxcsi", "hx-csi":
+		err = s.InstallAddonHXCSI(clusterUUID)
+		if err != nil {
+			return err
+		}
+
+		addonInstalled, err := s.IsAddonInstalled(clusterUUID, addonName)
+
+		for !*addonInstalled {
+			addonInstalled, err = s.IsAddonInstalled(clusterUUID, addonName)
+
+			if err != nil {
+				return err
+			}
+
+			time.Sleep(5 * time.Second)
 		}
 
 	default:
@@ -1950,6 +1968,13 @@ func (s *Client) DeleteAddon(clusterUUID string, addonName string) error {
 		}
 
 		err = s.DeleteAddonHarborInstance(clusterUUID)
+
+		if err != nil {
+			return err
+		}
+
+	case "hxcsi", "hx-csi", "ccp-hxcsi":
+		err = s.DeleteAddonAndConfirm(clusterUUID, "ccp-hxcsi")
 
 		if err != nil {
 			return err
