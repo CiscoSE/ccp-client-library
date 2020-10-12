@@ -713,7 +713,7 @@ func (s *Client) AddClusterSynchronous(cluster *Cluster) (*Cluster, error) {
 		return nil, err
 	}
 
-	time.Sleep(10 * time.Second)
+	time.Sleep(5 * time.Second)
 
 	status, err := s.GetClusterStatusByName(*cluster.Name)
 
@@ -729,7 +729,7 @@ func (s *Client) AddClusterSynchronous(cluster *Cluster) (*Cluster, error) {
 			return nil, err
 		}
 
-		time.Sleep(10 * time.Second)
+		time.Sleep(5 * time.Second)
 
 	}
 
@@ -1254,7 +1254,7 @@ func (s *Client) InstallAddon(clusterUUID string, addonName string) error {
 
 	switch addonName {
 
-	case "kubernetes-dashboard", "dashboard":
+	case "kubernetes-dashboard":
 		jsonBody = []byte(`
 		{
 			"displayName": "Dashboard",
@@ -1267,7 +1267,7 @@ func (s *Client) InstallAddon(clusterUUID string, addonName string) error {
 			]
 		}`)
 
-		err = s.InstallAddonAndWaitUntilInstalled(clusterUUID, addonName, jsonBody)
+		err = s.InstallAddonAndWaitUntilInstalled(clusterUUID, "kubernetes-dashboard", jsonBody)
 
 		if err != nil {
 			return err
@@ -1283,13 +1283,13 @@ func (s *Client) InstallAddon(clusterUUID string, addonName string) error {
 			"url": "/opt/ccp/charts/ccp-efk.tgz"
 		}`)
 
-		err = s.InstallAddonAndWaitUntilInstalled(clusterUUID, addonName, jsonBody)
+		err = s.InstallAddonAndWaitUntilInstalled(clusterUUID, "ccp-efk", jsonBody)
 
 		if err != nil {
 			return err
 		}
 
-	case "ccp-monitor", "monitor", "monitoring", "grafana":
+	case "ccp-monitor", "monitor", "monitoring":
 		jsonBody = []byte(`
 		{
 			"displayName": "Monitoring",
@@ -1299,7 +1299,7 @@ func (s *Client) InstallAddon(clusterUUID string, addonName string) error {
 			"url": "/opt/ccp/charts/ccp-monitor.tgz"
 		}`)
 
-		err = s.InstallAddonAndWaitUntilInstalled(clusterUUID, addonName, jsonBody)
+		err = s.InstallAddonAndWaitUntilInstalled(clusterUUID, "ccp-monitor", jsonBody)
 
 		if err != nil {
 			return err
@@ -1371,7 +1371,7 @@ func (s *Client) InstallAddon(clusterUUID string, addonName string) error {
 			return err
 		}
 
-		err = s.InstallAddonAndWaitUntilInstalled(clusterUUID, addonName, jsonBody)
+		err = s.InstallAddonAndWaitUntilInstalled(clusterUUID, "ccp-kubeflow", jsonBody)
 
 		if err != nil {
 			return err
@@ -1383,20 +1383,20 @@ func (s *Client) InstallAddon(clusterUUID string, addonName string) error {
 			return err
 		}
 
-		addonInstalled, err := s.IsAddonInstalled(clusterUUID, addonName)
+		addonInstalled, err := s.IsAddonInstalled(clusterUUID, "ccp-hxcsi")
 
 		for !*addonInstalled {
-			addonInstalled, err = s.IsAddonInstalled(clusterUUID, addonName)
+			addonInstalled, err = s.IsAddonInstalled(clusterUUID, "ccp-hxcsi")
 
 			if err != nil {
 				return err
 			}
 
-			time.Sleep(5 * time.Second)
+			time.Sleep(2 * time.Second)
 		}
 
 	default:
-		return errors.New("Incorrect addon name provided. Options are 'kubernetes-dashboard', 'ccp-efk', 'ccp-monitor', 'ccp-istio', 'harbor', 'ccp-kubeflow'")
+		return errors.New("Incorrect addon name provided for Add: '" + addonName + "'. Options are 'kubernetes-dashboard', 'ccp-efk', 'ccp-monitor', 'ccp-istio','harbor', 'ccp-kubeflow', 'hx-csi'")
 
 	}
 
@@ -1437,7 +1437,7 @@ func (s *Client) InstallAddonAndWaitUntilInstalled(clusterUUID string, addonName
 			return err
 		}
 
-		time.Sleep(5 * time.Second)
+		time.Sleep(2 * time.Second)
 
 	}
 
@@ -1753,6 +1753,10 @@ func (s *Client) InstallAddonHXCSI(clusterUUID string) error {
 		return err
 	}
 
+	if len(addons.CcpHxcsi.Name) == 0 {
+		return errors.New("hxcsi Addon not found in addons catalogue, can not install")
+	}
+
 	// fix missing Namespace from CcpHxcsi struct
 	addons.CcpHxcsi.Namespace = "ccp"
 	// now prepare the JSON body
@@ -1953,7 +1957,13 @@ func (s *Client) DeleteAddon(clusterUUID string, addonName string) error {
 			return err
 		}
 
-		err = s.DeleteAddonIstioInstance(clusterUUID)
+		// err = s.DeleteAddonIstioInstance(clusterUUID)
+
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.DeleteAddonAndConfirm(clusterUUID, "ccp-istio-cr")
 
 		if err != nil {
 			return err
@@ -1967,7 +1977,13 @@ func (s *Client) DeleteAddon(clusterUUID string, addonName string) error {
 			return err
 		}
 
-		err = s.DeleteAddonHarborInstance(clusterUUID)
+		// err = s.DeleteAddonHarborInstance(clusterUUID)
+
+		// if err != nil {
+		// 	return err
+		// }
+
+		err = s.DeleteAddonAndConfirm(clusterUUID, "ccp-harbor-cr")
 
 		if err != nil {
 			return err
@@ -1981,7 +1997,7 @@ func (s *Client) DeleteAddon(clusterUUID string, addonName string) error {
 		}
 
 	default:
-		return errors.New("Incorrect addon name provided. Options are 'kubernetes-dashboard', 'ccp-efk', 'ccp-monitor', 'cp-istio','harbor', 'ccp-kubeflow'")
+		return errors.New("Incorrect addon name provided for Delete: " + addonName + " Options are 'kubernetes-dashboard', 'ccp-efk', 'ccp-monitor', 'ccp-istio','harbor', 'ccp-kubeflow', 'hx-csi'")
 
 	}
 
