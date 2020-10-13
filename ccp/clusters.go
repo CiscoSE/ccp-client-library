@@ -1429,7 +1429,14 @@ func (s *Client) InstallAddonAndWaitUntilInstalled(clusterUUID string, addonName
 
 	addonInstalled, err = s.IsAddonInstalled(clusterUUID, addonName)
 
+	retries := 150 // 150 retries before failing = 300 seconds = 5 minutes
+	count := 0
 	for !*addonInstalled {
+		// retry X many times
+		count = count + 1
+		if count >= retries {
+			return errors.New("ccp addon " + addonName + " failed to install after all retries")
+		}
 
 		addonInstalled, err = s.IsAddonInstalled(clusterUUID, addonName)
 
